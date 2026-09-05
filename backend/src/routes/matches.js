@@ -59,6 +59,10 @@ matchRouter.post('/', async(req, res)=>{
             success:"TRUE",
             data: event
         })
+        if(res.app.locals.broadcastMatchCreated){
+            // pass the event created to the broadcastMatchCreated
+            res.app.locals.broadcastMatchCreated(event);
+        }
     }
     catch(error){
         res.status(500).json({
