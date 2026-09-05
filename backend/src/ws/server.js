@@ -10,7 +10,7 @@ function sendJson(socket, payload){
 
 const broadcast = (wss, payload)=>{
     for(const client of wss.clients){
-        if(client.readyState!==WebSocket.OPEN) return;
+        if(client.readyState!==WebSocket.OPEN) continue;
 
         client.send(JSON.stringify(payload));
     }
@@ -24,9 +24,21 @@ export const attachWebSocketServer=(server)=>{
         maxPayload: 1024*1024, // 1 megabyte | protect against memory abuse    
     })
     wss.on('connection', (socket)=>{
+        // we set the socket as alive and send a pong message to the client
+        socket.isAlive = true;
+        socket.on('pong', ()=>{socket.isAlive = true})
         sendJson(socket, {type: 'welcome'})
         socket.on('error', console.error);
     })
+    // we set an interval of 30s to run a check on each of the client and see whether they are alive, if not then we terminate these connections
+    const interval = setInterval(()=>{
+        wss.clients.forEach((ws)=>{
+            if(ws.isAlive==false) return ws.terminate();
+            ws.isAlive = false;
+            ws.ping();
+        })
+    }, 30000);
+    wss.on('close', ()=>clearInterval(interval));
 
     const broadcastMatchCreated = (match)=>{
         broadcast(wss, {type: 'match_created', data: match});
