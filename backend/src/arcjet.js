@@ -9,7 +9,7 @@ if(!arcjetKey){
     throw new Error('Invalid arcjetKey or missing');
 }
 
-export const httpArcjet = arcjet ?
+export const httpArcjet = arcjetKey ?
 arcject({
     key: arcjectKey,
     rules: [
