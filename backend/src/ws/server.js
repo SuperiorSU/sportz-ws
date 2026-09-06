@@ -1,7 +1,6 @@
 // we will need a helper function that will prevent repetitive json parsing/stringify calls and validate whether the web socket server is active or not
-
 import {WebSocket, WebSocketServer} from 'ws';
-
+import { wsArcjet } from '../arcjet.js';
 function sendJson(socket, payload){
     if(socket.readyState!== WebSocket.OPEN) return;
 
@@ -23,7 +22,27 @@ export const attachWebSocketServer=(server)=>{
         path:'/ws', // we need to provide a path to differentiate from the HTTP server path/route 
         maxPayload: 1024*1024, // 1 megabyte | protect against memory abuse    
     })
-    wss.on('connection', (socket)=>{
+
+    // here we will apply the wsArcjet security layer 
+    wss.on('connection', async(socket, req)=>{
+
+        if(wsArcjet){
+            try {
+                const decision = await wsArcjet.protect(req);
+
+                if(decision.isDenied()){
+                    const code = decision.reason.isRateLimit()?1013: 1008;
+                    const reason = decision.reason.isRateLimit()? 'Rate Limit Exceeded':'Access Denied';
+
+                    socket.close(code, reason);
+                }
+            } catch (error) {
+                console.log('WS connection error', error);
+                socket.close(1011, 'Server Security Error'); // general error
+                return;
+            }
+        }
+
         // we set the socket as alive and send a pong message to the client
         socket.isAlive = true;
         socket.on('pong', ()=>{socket.isAlive = true})
