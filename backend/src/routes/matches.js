@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { desc } from "drizzle-orm";
 import { createMatchSchema, listMatchesQuerySchema } from "../validation/matches.js";
 import { matches } from "../db/schema.js";
 import { db } from "../db/db.js";
@@ -29,8 +30,8 @@ matchRouter.get('/', async(req, res)=>{
     catch(error){
         res.status(500).json({
             success: "FALSE",
-            error: "Failed to create the match",
-            details: parsedData.error,
+            error: "Failed to retrieve the match data",
+            details: error instanceof Error ? error.message : String(error)
         });
     }
 });

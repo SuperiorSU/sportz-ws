@@ -13,7 +13,7 @@ export const httpArcjet = arcjetKey ?
 arcjet({
     key: arcjetKey,
     rules: [
-        shield({node: arcjetMode}), // analyzes the structure and prevents attacks such as SQL Injections, DDoS, Cross Scripting
+        shield({mode: arcjetMode}), // analyzes the structure and prevents attacks such as SQL Injections, DDoS, Cross Scripting
         detectBot({mode: arcjetMode, allow: ['CATEGORY:SEARCH_ENGINE', 'CATEGORY:PREVIEW']}), // disallow bots from data scrapping except for search engine and preview category bots, there are many options as well
         slidingWindow({mode: arcjetMode, interval: '10s', max:50}) // rate limiting rule/algorithm that tracks the requests over a moving time frame: Here we are allowing 50 requests max in 10s per IP address
     ]
